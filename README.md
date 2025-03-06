@@ -1,6 +1,9 @@
-# Proyecto: Medición de Espectros con AS726X en ESP32
+# Desarrollo de fluorómetro aplicado a la medición de ficocianina
+Proyecto Integrador para obtener el título de Ingeniero en Computación  
+- Autor: Segura, Gastón Marcelo  
+- Director: Ing. Rodriguez Gonzalez, Santiago  
+Este proyecto integrador, realizado en el Laboratorio de Hidráulica de la Universidad Nacional de Córdoba, se centra en el desarrollo de un prototipo de sensor de fluorescencia para detección de ficocianina. Se busca que el dispositivo funcione de manera in situ en cuerpos de agua, mediante una refinada selección, caracterización y disposición de sus componentes.
 
-Este proyecto permite la medición de espectros de luz utilizando los sensores AS7262 y AS7263 en una ESP32. La comunicación con los sensores se realiza a través de I2C y UART.
 
 ## 📌 Características
 - Utiliza el sensor **AS7262** para medición de luz visible.

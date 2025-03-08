@@ -2,15 +2,12 @@
 Proyecto Integrador para obtener el título de Ingeniero en Computación  
 - Autor: Segura, Gastón Marcelo  
 - Director: Ing. Rodriguez Gonzalez, Santiago  
-Este proyecto integrador, realizado en el Laboratorio de Hidráulica de la Universidad Nacional de Córdoba, se centra en el desarrollo de un prototipo de sensor de fluorescencia para detección de ficocianina. Se busca que el dispositivo funcione de manera in situ en cuerpos de agua, mediante una refinada selección, caracterización y disposición de sus componentes.
-
+Este proyecto integrador, realizado en el Laboratorio de Hidráulica de la Universidad Nacional de Córdoba, se centra en el desarrollo de un prototipo de sensor de fluorescencia para detección de ficocianina. Se busca diseñar una solución para integrar la medición de ficocianina con la de clorofila en un único sistema.
 
 ## 📌 Características
-- Utiliza el sensor **AS7262** para medición de luz visible.
-- Utiliza el sensor **AS7263** para medición de luz en el infrarrojo cercano.
-- Mide fluorescencia de ficocianina y clorofila.
-- Soporta configuración de ganancia e integración.
-- Control de iluminación del sensor.
+- Utiliza el sensor **AS7262** y el LED **TLCR6800** para medición de ficocianina.
+- Utiliza el sensor **AS7263** y el LED **XZCB25X109FS** para medición de clorofila.
+- Soporta configuración de ganancia y tiempo integración de los sensores.
 
 ## 🔧 Conexión de Hardware
 - **ESP32 TX2 (GPIO 17)** → **RX del AS7263**

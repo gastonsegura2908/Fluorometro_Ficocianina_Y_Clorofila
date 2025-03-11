@@ -1,7 +1,8 @@
 # Desarrollo de fluorómetro aplicado a la medición de ficocianina
 Proyecto Integrador para obtener el título de Ingeniero en Computación  
 - Autor: Segura, Gastón Marcelo  
-- Director: Ing. Rodriguez Gonzalez, Santiago  
+- Director: Ing. Rodriguez Gonzalez, Santiago
+
 Este proyecto integrador, realizado en el Laboratorio de Hidráulica de la Universidad Nacional de Córdoba, se centra en el desarrollo de un prototipo de sensor de fluorescencia para detección de ficocianina. Se busca diseñar una solución para integrar la medición de ficocianina con la de clorofila en un único sistema.
 
 ## 📌 Características

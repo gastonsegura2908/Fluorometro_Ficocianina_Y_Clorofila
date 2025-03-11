@@ -1,5 +1,5 @@
 # Desarrollo de fluorómetro aplicado a la medición de ficocianina
-Proyecto Integrador para obtener el título de Ingeniero en Computación  
+Proyecto Integrador para obtener el título de Ingeniero en Computación.  
 - Autor: Segura, Gastón Marcelo  
 - Director: Ing. Rodriguez Gonzalez, Santiago
 

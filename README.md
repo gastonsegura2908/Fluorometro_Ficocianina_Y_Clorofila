@@ -8,38 +8,34 @@ Este proyecto integrador, realizado en el Laboratorio de Hidráulica de la Unive
 ## 📌 Características
 - Utiliza el sensor **AS7262** y el LED **TLCR6800** para medición de ficocianina.
 - Utiliza el sensor **AS7263** y el LED **XZCB25X109FS** para medición de clorofila.
-- Soporta configuración de ganancia y tiempo integración de los sensores.
-- Utiliza la libreria SparkFun AS726X by Andrew England para facilitar la comunicacion I2C con el sensor AS7262. Este proyecto funcionó con la versión 1.0.5, por lo tanto se recomienda instalar la misma.
+- Soporta configuración de ganancia y tiempo de integración de los sensores.
+- Utiliza la librería SparkFun AS726X de Andrew England para facilitar la comunicacion I2C con el sensor AS7262. Este proyecto funcionó con la versión 1.0.5, por lo tanto se recomienda instalar la misma.
 
 ## 💻 Protocolos
 Los sensores AS7262 y AS7263 comparten la misma dirección I2C, la cual está definida por hardware y no puede ser modificada. Esto impide que ambos dispositivos operen
 simultáneamente utilizando el mismo protocolo de comunicación. Para resolver esta limitación, y aprovechando que ambos sensores también pueden operar mediante UART, se decide implementar un esquema híbrido: el sensor AS7262 se configura para comunicarse mediante I2C, mientras que el AS7263 utiliza UART. Esta solución permite integrar ambos dispositivos en el mismo sistema sin conflictos de dirección, garantizando una comunicación efectiva y sin interferencias.
 
-## 🔧 Conexión de la comunicación I2C y UART 
+## 🔧 Conexión de la comunicación I2C y UART entre sensores y ESP32
 - **ESP32 TX2 (GPIO 17)** → **RX del AS7263**
 - **ESP32 RX2 (GPIO 16)** → **TX del AS7263**
-- **ESP32 SDA/SCL** → **AS7262 (I2C)**
+- **ESP32 I2C_SDA/I2C_SCL** → **AS7262 SDA_S/SCL_S**
 - **Alimentación:** 3.3V
 
 ## 🔦 Modulación
-Con el objetivo de optimizar la relaci´on se˜nal/ruido en las mediciones, se implementa
-una t´ecnica de modulaci´on basada en una onda cuadrada, como se detalla y valida
-en [5]. Esta t´ecnica consiste en alternar la corriente de alimentaci´on de los dos LEDs
-emisores entre dos niveles: un valor m´aximo de 100 mA y un valor m´ınimo de 0 mA,
-tal como se ilustra en la Figura 6-2.
-Durante los ciclos de encendido (a 100 mA), los LEDs emiten luz con su m´axima
-intensidad, lo que maximiza la fluorescencia detectada por los sensores. El valor medido
-en este estado es proporcional a la se˜nal de inter´es. Por otro lado, durante los ciclos
-de apagado (a 0 mA), los sensores solo registran el ruido de fondo, ya que no hay
-emisi´on de luz desde los LEDs. Este enfoque permite separar la se˜nal de inter´es del
-ruido inherente al sistema, mejorando la precisi´on de las mediciones.
+Con el objetivo de optimizar la relación señal/ruido en las mediciones, se implementa una técnica de modulación basada en una onda cuadrada que consiste en alternar la corriente de alimentación de los dos LEDs emisores entre dos niveles: un valor máximo de 100 mA y un valor mínimo de 0 mA. Durante los ciclos de encendido (a 100 mA), los LEDs emiten luz con su máxima intensidad, lo que maximiza la fluorescencia detectada por los sensores. El valor medido en este estado es proporcional a la señal de interés. Por otro lado, durante los ciclos de apagado (a 0 mA), los sensores solo registran el ruido de fondo, ya que no hay emisión de luz desde los LEDs. Este enfoque permite separar la señal de interés del ruido inherente al sistema, mejorando la precisión de las mediciones.
 
+## 🔬 Funcionamiento
+El prototipo está diseñado para operar en dos modos: detección de ficocianina o detección de clorofila. Adicionalmente, incluye la opción de calibración que permite ajustar el dispositivo antes de realizar mediciones. Ambos sensores realizan dos mediciones ya que utilizan la modulación descrita en el título anterior, activando el LED correspondiente a cada caso. Para calibrar el sensor de ficocianina, se enciende el LED de 450 nm y se apaga el de 620 nm. Esto se debe a que la calibración se realiza con rodamina, un pigmento que requiere un LED azul para su excitación. Aunque ambos sensores permanecen encendidos, solo uno de ellos realiza el sensado en cada momento, dependiendo del modo de operación seleccionado.
+
+Tanto la ganancia como el tiempo de integración se configuran en sus valores máximos para garantizar la obtención de la máxima intensidad de fluorescencia posible. 
+
+El código implementado está desarrollado en C++ y ejecutado en el entorno Arduino IDE para programar una ESP32.
 
 ## 📜 Código Fuente
 ```cpp
 #include "AS726X.h"
 
-AS726X sensor; // sensor as7262
+AS726X sensor;    // Sensor as7262
 #define RX_PIN 16 // Pin de RX2 en ESP32 conectado a TX del sensor
 #define TX_PIN 17 // Pin de TX2 en ESP32 conectado a RX del sensor
 
@@ -74,8 +70,8 @@ void setupAS7262()
     while (1)
       ;
   }
-  Wire.setClock(400000);          // fast mode
-  sensor.setGain(3);              // valores de ganancia: 0(1x), 1(3.7x), 2(16x), 3(64x)
+  Wire.setClock(400000);          // Fast mode
+  sensor.setGain(3);              // Valores de ganancia: 0(1x), 1(3.7x), 2(16x), 3(64x)
   sensor.setIntegrationTime(255); // Tiempo de integración: 255 * 2.8ms = 714 ms
   sensor.disableIndicator();
   if(!(ficocianina && !calibracion)){
@@ -89,9 +85,9 @@ void setupAS7263()
   sendATCommand("AT"); 
   delay(1000); 
 
-  sendATCommand("ATINTTIME=255"); // valores de tiempo de integracion: desde 1 a 255
+  sendATCommand("ATINTTIME=255"); // Valores de tiempo de integracion: desde 1 a 255
 
-  sendATCommand("ATGAIN=3");      // valores de ganancia: 0(1x), 1(3.7x), 2(16x), 3(64x)
+  sendATCommand("ATGAIN=3");      // Valores de ganancia: 0(1x), 1(3.7x), 2(16x), 3(64x)
 
   if(ficocianina && !calibracion)
   {
@@ -109,13 +105,13 @@ void loop() {
     
     if(!calibracion){ // led rojo
       sensor.enableBulb();
-      sensor.setBulbCurrent(3);       // los valores posibles de corriente son 0: 12.5mA, 1: 25mA, 2: 50mA, 3: 100mA
+      sensor.setBulbCurrent(3);       // Los valores posibles de corriente son 0: 12.5mA, 1: 25mA, 2: 50mA, 3: 100mA
     }else{            // led azul
       sendATCommand("ATLED1=100");    // Prende led azul
-      sendATCommand("ATLEDC=0x30");   // corriente del led azul a 100 mA
+      sendATCommand("ATLEDC=0x30");   // Corriente del led azul a 100 mA
     }
 
-    delayMicroseconds(286000);
+    delayMicroseconds(286000);        // Recordar que el tiempo de integracion es de 255(714 ms), por lo tanto 714 ms + 286 ms = 1 segundo
 
     sensor.takeMeasurements();
 
@@ -177,13 +173,13 @@ void loop() {
     sendATCommand("ATLEDC=0x30");    // Configura corriente a 100 mA
 
     delayMicroseconds(286000);
-    sendATCommand("ATCDATA", channels_100mA); // lee los valores que devuelve el sensor con el led a 100 mA
+    sendATCommand("ATCDATA", channels_100mA); // Lee los valores que devuelve el sensor con el led a 100 mA
 
-    sendATCommand("ATLED1=0");       // apaga led azul
+    sendATCommand("ATLED1=0");       // Apaga led azul
 
     delayMicroseconds(286000);
 
-    sendATCommand("ATCDATA", channels_0mA);  // lee los valores que devuelve el sensor con el led a 0 mA
+    sendATCommand("ATCDATA", channels_0mA);  // Lee los valores que devuelve el sensor con el led a 0 mA
 
     // Imprime los valores de cada canal con la resta de los valores de 100 mA y 0 mA
     String channelNames[] = {"610", "680", "730", "760", "810", "860"};
@@ -198,7 +194,7 @@ void loop() {
 }
 
 /*
-  Funcion que se encarga de reacondicionar el valor que retorna el sensor as7263 al enviar un comando AT
+  Función que se encarga de reacondicionar el valor que retorna el sensor as7263 al enviar un comando AT
 */
 void sendATCommand(String command, float* channelValues) {
     Serial2.print(command + "\r\n");  // Envía el comando al sensor
@@ -236,23 +232,23 @@ void sendATCommand(String command, float* channelValues) {
 2. Abrir **Arduino IDE** o **PlatformIO** con el monitor serie a **115200 baudios**.
 3. Observar los datos en el monitor serie que nos devuelven los sensores.
 
-## 📌 Configuración de Variables
+## ⌨️ Configuración de Variables
 - **`ficocianina = true`** → Medición de ficocianina.
 - **`ficocianina = false`** → Medición de clorofila.
-- **`calibracion = false`** → Modo de medición estándar (sin calibración).
-- **`sensor.setGain(3)`** → Configura la ganancia del sensor AS7262 con sus posibles valores: 0(1x),1(3.7x),2(16x),3(64x)
+- **`calibracion = false/true`** → Modo de medición sin calibración o con calibración.
+- **`sensor.setGain(3)`** → Configura la ganancia del sensor AS7262 con sus posibles valores: 0(1x), 1(3.7x), 2(16x), 3(64x)
 - **`sensor.setIntegrationTime(255)`** → Configura el tiempo de integracion del sensor AS7262 con los valores que van desde 1 hasta 255, el valor de tiempo de integración sera el colocado multiplicado por 2.8 ms.
 - **`sendATCommand("ATGAIN=3")`** → Configura la ganancia del sensor AS7263, similar a los que sucede con el AS7262
 - **`sendATCommand("ATINTTIME=255")`** → Configura el tiempo de integracion del sensor AS7263, similar a los que sucede con el AS7262
 
 ## 📊 Ejemplo de Salida en Monitor Serie  
-Se procede a observar los valores de cuentas que devuelve cada uno de los canales del sensor que se seleccionó:
+Se procede a observar los valores de cuentas que devuelve cada uno de los canales del sensor que se seleccionó(el AS7262 en este caso):
 ```
 450nm: 12.34 , 500nm: 10.56 , 550nm: 8.23 , 570nm: 7.45 , 600nm: 6.78 , 650nm: 5.90
 ```
 
 ## 🔗 Recursos
-Se encuentran adjuntados en este proyecto dos carpetas denominadas **sensores** y **emisores** en las cuales estan las hojas de datos de cada uno de los elementos utilizados. Además se adjunta el informe del proyecto integrador realizado, para mas información.
+En este proyecto se incluyen dos carpetas denominadas "sensores" y "emisores", en las cuales están las hojas de datos de cada uno de los elementos utilizados. Además, se adjunta el informe del proyecto integrador realizado, para más información.
 
 ---
 📌 **Autor:** Gaston Marcelo Segura.  

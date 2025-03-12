@@ -6,13 +6,13 @@ AS726X sensor;    // Sensor as7262
 
 //------------------------------------------------
 
-bool ficocianina = true; // false = clorofila
+bool ficocianina = false; // false = clorofila
 bool calibracion = false;
 
 //------------------------------------------------
 
 void sendATCommand(String command, float* channelValues = nullptr);
-
+float clampToZero(float value);
 
 
 void setup() {
@@ -117,41 +117,41 @@ void loop() {
     }
 
     Serial.print("450nm: ");
-    Serial.print(violet_100mA - violet_0mA, 2);
+    Serial.print(clampToZero(violet_100mA - violet_0mA), 2);
     Serial.print(" , 500nm: ");
-    Serial.print(blue_100mA - blue_0mA, 2);
+    Serial.print(clampToZero(blue_100mA - blue_0mA), 2);
     Serial.print(" , 550nm: ");
-    Serial.print(green_100mA - green_0mA, 2);
+    Serial.print(clampToZero(green_100mA - green_0mA), 2);
     Serial.print(" , 570nm: ");
-    Serial.print(yellow_100mA - yellow_0mA, 2);
+    Serial.print(clampToZero(yellow_100mA - yellow_0mA), 2);
     Serial.print(" , 600nm: ");
-    Serial.print(orange_100mA - orange_0mA, 2);
+    Serial.print(clampToZero(orange_100mA - orange_0mA), 2);
     Serial.print(" , 650nm: ");
-    Serial.println(red_100mA - red_0mA, 2);
+    Serial.println(clampToZero(red_100mA - red_0mA), 2);
 
   }else { // CLOROFILA --------------------------------------------------------------------------------------
-    float channels_100mA[6] = {0.0}; // Almacena los valores de los canales para 100 mA
-    float channels_0mA[6] = {0.0};   // Almacena los valores de los canales para 0 mA
-    float fluorescence[6] = {0.0};   // Almacena los valores de fluorescencia calculados
-
-    sendATCommand("ATLED1=100");     // Prende led azul
-    sendATCommand("ATLEDC=0x30");    // Configura corriente a 100 mA
+    float channels_100mA[6] = {0.0};          // Almacena los valores de los canales para 100 mA
+    float channels_0mA[6] = {0.0};            // Almacena los valores de los canales para 0 mA
+    float fluorescence[6] = {0.0};            // Almacena los valores de fluorescencia calculados
+  
+    sendATCommand("ATLED1=100");              // Prende led azul
+    sendATCommand("ATLEDC=0x30");             // Configura corriente a 100 mA
 
     delayMicroseconds(286000);
     sendATCommand("ATCDATA", channels_100mA); // Lee los valores que devuelve el sensor con el led a 100 mA
 
-    sendATCommand("ATLED1=0");       // Apaga led azul
+    sendATCommand("ATLED1=0");                // Apaga led azul
 
     delayMicroseconds(286000);
 
-    sendATCommand("ATCDATA", channels_0mA);  // Lee los valores que devuelve el sensor con el led a 0 mA
+    sendATCommand("ATCDATA", channels_0mA);   // Lee los valores que devuelve el sensor con el led a 0 mA
 
     // Imprime los valores de cada canal con la resta de los valores de 100 mA y 0 mA
     String channelNames[] = {"610", "680", "730", "760", "810", "860"};
     for (int i = 0; i < 6; i++) {
-      fluorescence[i] = channels_100mA[i] - channels_0mA[i];
+      fluorescence[i] = clampToZero(channels_100mA[i] - channels_0mA[i]);
       Serial.print(channelNames[i] + " nm: ");
-      Serial.print(fluorescence[i], 2); // Muestra 2 decimales
+      Serial.print(fluorescence[i], 2);       // Muestra 2 decimales
       Serial.print(" , ");
     }
     Serial.println("");
@@ -189,4 +189,9 @@ void sendATCommand(String command, float* channelValues) {
             Serial2.read();     // Descarta la salida para otros comandos
         }
     }
+}
+
+// Función para evitar valores negativos
+float clampToZero(float value) {
+  return value < 0 ? 0 : value;
 }

@@ -1,7 +1,6 @@
-
 #include "AS726X.h"
 
-AS726X sensor; // sensor as7262
+AS726X sensor;    // Sensor as7262
 #define RX_PIN 16 // Pin de RX2 en ESP32 conectado a TX del sensor
 #define TX_PIN 17 // Pin de TX2 en ESP32 conectado a RX del sensor
 
@@ -36,8 +35,8 @@ void setupAS7262()
     while (1)
       ;
   }
-  Wire.setClock(400000);          // fast mode
-  sensor.setGain(3);              // valores de ganancia: 0(1x), 1(3.7x), 2(16x), 3(64x)
+  Wire.setClock(400000);          // Fast mode
+  sensor.setGain(3);              // Valores de ganancia: 0(1x), 1(3.7x), 2(16x), 3(64x)
   sensor.setIntegrationTime(255); // Tiempo de integración: 255 * 2.8ms = 714 ms
   sensor.disableIndicator();
   if(!(ficocianina && !calibracion)){
@@ -51,9 +50,9 @@ void setupAS7263()
   sendATCommand("AT"); 
   delay(1000); 
 
-  sendATCommand("ATINTTIME=255"); // valores de tiempo de integracion: desde 1 a 255
+  sendATCommand("ATINTTIME=255"); // Valores de tiempo de integracion: desde 1 a 255
 
-  sendATCommand("ATGAIN=3");      // valores de ganancia: 0(1x), 1(3.7x), 2(16x), 3(64x)
+  sendATCommand("ATGAIN=3");      // Valores de ganancia: 0(1x), 1(3.7x), 2(16x), 3(64x)
 
   if(ficocianina && !calibracion)
   {
@@ -71,13 +70,13 @@ void loop() {
     
     if(!calibracion){ // led rojo
       sensor.enableBulb();
-      sensor.setBulbCurrent(3);       // los valores posibles de corriente son 0: 12.5mA, 1: 25mA, 2: 50mA, 3: 100mA
+      sensor.setBulbCurrent(3);       // Los valores posibles de corriente son 0: 12.5mA, 1: 25mA, 2: 50mA, 3: 100mA
     }else{            // led azul
       sendATCommand("ATLED1=100");    // Prende led azul
-      sendATCommand("ATLEDC=0x30");   // corriente del led azul a 100 mA
+      sendATCommand("ATLEDC=0x30");   // Corriente del led azul a 100 mA
     }
 
-    delayMicroseconds(286000);
+    delayMicroseconds(286000);        // Recordar que el tiempo de integracion es de 255(714 ms), por lo tanto 714 ms + 286 ms = 1 segundo
 
     sensor.takeMeasurements();
 
@@ -139,13 +138,13 @@ void loop() {
     sendATCommand("ATLEDC=0x30");    // Configura corriente a 100 mA
 
     delayMicroseconds(286000);
-    sendATCommand("ATCDATA", channels_100mA); // lee los valores que devuelve el sensor con el led a 100 mA
+    sendATCommand("ATCDATA", channels_100mA); // Lee los valores que devuelve el sensor con el led a 100 mA
 
-    sendATCommand("ATLED1=0");       // apaga led azul
+    sendATCommand("ATLED1=0");       // Apaga led azul
 
     delayMicroseconds(286000);
 
-    sendATCommand("ATCDATA", channels_0mA);  // lee los valores que devuelve el sensor con el led a 0 mA
+    sendATCommand("ATCDATA", channels_0mA);  // Lee los valores que devuelve el sensor con el led a 0 mA
 
     // Imprime los valores de cada canal con la resta de los valores de 100 mA y 0 mA
     String channelNames[] = {"610", "680", "730", "760", "810", "860"};
@@ -160,7 +159,7 @@ void loop() {
 }
 
 /*
-  Funcion que se encarga de reacondicionar el valor que retorna el sensor as7263 al enviar un comando AT
+  Función que se encarga de reacondicionar el valor que retorna el sensor as7263 al enviar un comando AT
 */
 void sendATCommand(String command, float* channelValues) {
     Serial2.print(command + "\r\n");  // Envía el comando al sensor
